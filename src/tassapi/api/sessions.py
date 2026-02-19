@@ -24,17 +24,34 @@ REQUEST_PARAM_NAMES = tuple(
 
 @dataclass
 class TassAPIServer:
-    """Server Configuration."""
+    """Server Configuration.
+    :param base: base url, for example 'https://tass.example.org/api'
+    :param key: client key (refer to the TASS API documentation on how this is generated)
+    :param secret: client secret (refer to the TASS API documentation on how this is generated)
+    :param cmpy_code: the company code that API calls will be made against
+    :param attachment_dest: a pre-existing directory where any remote resource files will be downloaded to
+                            when dowloads are performed
+    :param token_expire_offset: the number of seconds (as integer) to offset against the token expiration time to
+                                ensure re-authentication happens in time; default is 60 seconds
+    :param retries: the maximum number of retries when a rate limit HTTP status is sent (HTTP 429); default is 5
+    :param status_forcelist: a list of HTTP status codes (integers) where retries can be made; this should only
+                             include HTTP status codes that are idempotent; default is '[429]' (this is mutated
+                             to a set in post init)"""
 
     base: str
     key: str
     secret: str
     cmpy_code: str
-    token_expire_offset: Optional[int] = field(default=60)
-    attachment_dest: Optional[Path] = field(default=Path("/tmp"))
+    attachment_dest: Path
 
+    token_expire_offset: Optional[int] = field(default=60)
     retries: Optional[int] = field(default=5)
     status_forcelist: Optional[Sequence[int]] = field(default_factory=lambda: [429])
+
+    def __post_init__(self):
+        # always ensure HTTP 429 (signals rate limit) is covered in retry
+        self.status_forcelist = set(self.status_forcelist)
+        self.status_forcelist.add(429)
 
     @property
     def retry_adapter(self) -> Retry:

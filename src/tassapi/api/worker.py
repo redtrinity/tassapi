@@ -32,7 +32,6 @@ def request(method: str) -> Callable:
 
             path = urljoin(*args) if args else None
             url = urljoin(self.session.server.base, self.session.server.cmpy_code, self.endpoint, path)
-            print(f"@request.{url=}")
             req_kw, fnc_kw = self.session.parse_request_kwargs(**kwargs)
             has_patch_obj = bool(req_kw.get("data", None))
             has_files = bool(req_kw.get("files"))

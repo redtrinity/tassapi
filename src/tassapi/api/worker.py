@@ -26,7 +26,7 @@ def request(method: str) -> Callable:
 
     def wrapper(fn: Callable) -> Callable:
         @wraps(fn)
-        def wrapped_fn(self, *args, **kwargs) -> requests.Response:
+        def wrapped_fn(self, *args, **kwargs) -> APIResponse:
             if not self.session.authenticated:
                 self.session.authenticate()
 
